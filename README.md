@@ -1,4 +1,6 @@
-# FontGuard: A Robust Font Watermarking Approach Leveraging Deep Font Knowledge
+# FontGuard: A Robust Font Watermarking Approach Leveraging Deep Font Knowledge 
+
+[![arXiv](https://img.shields.io/badge/arXiv-2504.03128.svg)](https://arxiv.org/abs/2504.03128)
 
 ![Model Overview](./img/model_overview.png)
  
