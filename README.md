@@ -54,6 +54,5 @@ If you find our project useful in your research, please cite it in your publicat
   journal={arXiv preprint arXiv:2504.03128},
   year={2025}
 }
-}
 ```
  
