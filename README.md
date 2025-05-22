@@ -40,5 +40,20 @@ The data is organized as follows:
 To extract the bitstream from test set font images, first update the paths in `cfg.py`. Then, execute the following command:
 ```bash
 python test.py
-```   
+```
+
+## Citation
+
+If you find our project useful in your research, please cite it in your publications.
+
+```bibtex
+@article{
+  wong2025fontguard,
+  title={FontGuard: A Robust Font Watermarking Approach Leveraging Deep Font Knowledge},
+  author={Wong, Kahim and Zhou, Jicheng and Li, Kemou and Si, Yain-Whar and Wu, Xiaowei and Zhou, Jiantao},
+  journal={arXiv preprint arXiv:2504.03128},
+  year={2025}
+}
+}
+```
  
