@@ -51,7 +51,7 @@ If you find our project useful in your research, please cite it in your publicat
   wong2025fontguard,
   title={FontGuard: A Robust Font Watermarking Approach Leveraging Deep Font Knowledge},
   author={Wong, Kahim and Zhou, Jicheng and Li, Kemou and Si, Yain-Whar and Wu, Xiaowei and Zhou, Jiantao},
-  journal={arXiv preprint arXiv:2504.03128},
+  journal={IEEE Transactions on Multimedia},
   year={2025}
 }
 ```
