@@ -1,58 +1,136 @@
-# [TMM'25] FontGuard: A Robust Font Watermarking Approach Leveraging Deep Font Knowledge
+# FontGuard
+
 [![arXiv](https://img.shields.io/badge/arXiv-2504.03128-b31b1b.svg)](https://arxiv.org/abs/2504.03128)
+[![Venue](https://img.shields.io/badge/IEEE-TMM%202025-0a66c2.svg)](https://arxiv.org/abs/2504.03128)
 
-![Model Overview](./img/model_overview.png)
- 
-## Description   
-We introduce FontGuard, a novel font watermarking model that harnesses the capabilities of font models and language-guided contrastive learning. Unlike previous methods that focus solely on the pixel-level alteration, FontGuard modifies fonts by altering hidden style features, resulting in better font quality upon watermark embedding. We also leverage the font manifold to increase the embedding capacity of our proposed method by generating substantial font variants closely resembling the original font. Furthermore, in the decoder, we employ an image-text contrastive learning to reconstruct the embedded bits, which can achieve desirable robustness against various real-world transmission distortions. 
+> **FontGuard** is a robust font watermarking framework that embeds bits by manipulating font style representations (instead of only pixel-space perturbations), then decodes them with contrastive learning for stronger distortion robustness.
 
-## Training 
-The training code will be available soon.
+![Model Overview](./fig/model_overview.png)
 
-## Demo  
-We provide the SVG files for the 1-bit watermarked SimSun font which includes two variants, along with a test set collected across 7 distribution scenarios. Each scenario's test set contains 1000 segmented character images.
-All the data can be found [here](https://pan.baidu.com/s/1n8z7o1pPgJpfsHl5hXP-5w?pwd=rocu) (Password: rocu).  
+---
 
-The data is organized as follows:  
-```
-|-WeChat  # test set for OSNs scenario
-|---FontGuard_SimSun_16
-|-Weibo  # test set for OSNs scenario
-|---FontGuard_SimSun_16
-|-Whatsapp  # test set for OSNs scenario
-|---FontGuard_SimSun_16
-|-Facebook  # test set for OSNs scenario
-|---FontGuard_SimSun_16
-|-print_camera  # test set for cross-media scenario
-|---FontGuard_SimSun_16
-|-screen_camera  # test set for cross-media scenario
-|---FontGuard_SimSun_16
-|-screenshots  # test set for cross-media scenario
-|---FontGuard_SimSun_16
-|-svg  # 1-bit watermarked SimSun SVG
-|---msg_0
-|---msg_1
-|-bit_seq.txt  # bitstream ground truth for the test set
-|-dec.pth  # decoder checkpoint
-|-GB2312_CN6763.txt  # character set
+## ✨ Highlights
+
+- **Style-space watermarking** with a font generator prior for better visual quality.
+- **Contrastive decoder training** for stable bit recovery.
+- **Noise-aware curriculum** that improves robustness under real-world distortions.
+- **Demo assets included** for 1-bit SimSun watermarking and multi-scenario evaluation.
+
+![Training Visualization](./fig/fontguard_vis.png)
+
+---
+
+## 📦 Repository Layout
+
+```text
+FontGuard/
+├── main.py               # training entry
+├── cfg.py                # training configuration
+├── ds.py                 # dataloader (font + random background)
+├── model/                # encoder/decoder/discriminator + noise layers
+├── fig/                  # figures used in docs
+└── demo/
+    ├── test.py           # demo evaluation entry
+    ├── demo_cfg.py       # demo config template
+    └── README.md         # demo data details
 ```
 
-To extract the bitstream from test set font images, first update the paths in `cfg.py`. Then, execute the following command:
+---
+
+## 🚀 Quick Start
+
+### 1) Environment
+
+Install dependencies in your Python environment:
+
 ```bash
+pip install torch torchvision numpy pillow tqdm
+```
+
+> If your setup differs (CUDA / PyTorch version constraints), install the matching PyTorch build first, then install the remaining packages.
+
+### 2) Prepare data and pretrained files
+
+Set the `root` directory in `cfg.py`, then place required files under that root:
+
+- font images (`font_dir`, default: `root/ori_png`)
+- mean style feature (`base_sty_path`)
+- pretrained decoder checkpoint (`pretrain_dec_ckpt`)
+- background images (`bg_dir`, default: `root/val2017`)
+
+Pretrained resources:
+- [Google Drive](https://drive.google.com/drive/folders/1n9l8sXo2mLh7a3e5j6v0Zt9sXq8z9b?usp=sharing)
+
+### 3) Organize font images correctly
+
+`ds.py` uses `torchvision.datasets.ImageFolder`, so images must be inside at least one subfolder:
+
+```text
+ori_png/
+└── SimSun/
+    ├── 0000.png
+    ├── 0001.png
+    └── ...
+```
+
+Expected image size is **80×80** (configured by `font_img_size` in `cfg.py`).
+
+### 4) Train
+
+```bash
+python main.py
+```
+
+Training outputs are written to `exp_dir` (auto-created in `cfg.py`), including checkpoints and visualization images.
+
+---
+
+## ⚙️ Key Configuration (`cfg.py`)
+
+- `msg_bit`: watermark bit length (default `1`, so `msg_n=2` classes)
+- `font_dir`, `bg_dir`: font/background data directories
+- `font_model_ckpt`, `base_sty_path`, `pretrain_dec_ckpt`: required model assets
+- `epochs`, `bs`, `enc_lr`, `dec_lr`, `disc_lr`: training schedule and optimization
+- `init_epoch`, `start_noise_epoch`, `full_noise_epoch`: curriculum stages
+
+> `main.py` sets `CUDA_VISIBLE_DEVICES` internally. Adjust it if needed for your machine.
+
+---
+
+## 🧪 Demo Evaluation
+
+The demo folder includes evaluation code for released 1-bit watermarked SimSun assets across multiple scenarios.
+
+1. Download demo package (see `demo/README.md`).
+2. Configure paths in `demo/demo_cfg.py`.
+3. Ensure `demo/test.py` imports the same config module name (`cfg`).
+4. Run:
+
+```bash
+cd demo
 python test.py
 ```
 
-## Citation
+The script prints per-scenario decoding accuracy.
 
-If you find our project useful in your research, please cite it in your publications.
+---
+
+## 📚 Citation
+
+If this project helps your research, please cite:
 
 ```bibtex
-@article{
-  wong2025fontguard,
+@article{wong2025fontguard,
   title={FontGuard: A Robust Font Watermarking Approach Leveraging Deep Font Knowledge},
   author={Wong, Kahim and Zhou, Jicheng and Li, Kemou and Si, Yain-Whar and Wu, Xiaowei and Zhou, Jiantao},
   journal={IEEE Transactions on Multimedia},
   year={2025}
 }
 ```
- 
+
+---
+
+## 🙌 Acknowledgment
+
+This implementation includes reusable modules under `model/` (e.g., DGFont, differentiable JPEG, PCGrad) integrated into the FontGuard training pipeline.
+
