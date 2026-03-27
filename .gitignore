@@ -1,5 +1,4 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
 *.py[cod]
 *$py.class
 
@@ -60,7 +59,6 @@ env.bak/
 venv.bak/
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
