@@ -53,7 +53,7 @@ pip install torch torchvision numpy pillow tqdm
 
 Set the `root` directory in `cfg.py`, then place required files under that root:
 
-- font images (`font_dir`, default: `root/ori_png`)
+- font images (`font_dir`, default: `root/SimSun`)
 - mean style feature (`base_sty_path`)
 - pretrained decoder checkpoint (`pretrain_dec_ckpt`)
 - background images (`bg_dir`, default: `root/val2017`)
@@ -61,13 +61,37 @@ Set the `root` directory in `cfg.py`, then place required files under that root:
 Pretrained resources:
 - [Google Drive](https://drive.google.com/drive/folders/1n9l8sXo2mLh7a3e5j6v0Zt9sXq8z9b?usp=sharing)
 
+Recommended `exp_data` layout (matching `cfg.py` defaults):
+
+```text
+exp_data/
+├── SimSun/                      # training font images (ImageFolder style)
+│   └── <font-subdir>/
+│       ├── 0000.png
+│       └── ...
+├── val2017/                     # background images (e.g., COCO val2017)
+├── base_sty_feat_CH.pth         # extracted mean style feature
+├── clip_cls_CH.pt               # pretrained decoder checkpoint
+├── font_model_CH.ckpt           # pretrained font recognition model
+└── SimSun YYYY.MM.DD--HH-MM-SS/ # auto-created per run (`exp_dir`)
+    ├── SimSun.log
+    ├── train.csv
+    ├── eval.csv
+    ├── tb-logs/
+    ├── vis_img/
+    ├── ckpt/
+    └── checkpoints/
+```
+
+> Note: the timestamped run directory is created automatically at startup.
+
 ### 3) Organize font images correctly
 
 `ds.py` uses `torchvision.datasets.ImageFolder`, so images must be inside at least one subfolder:
 
 ```text
-ori_png/
-└── SimSun/
+SimSun/
+└── <font-subdir>/
     ├── 0000.png
     ├── 0001.png
     └── ...
@@ -133,4 +157,3 @@ If this project helps your research, please cite:
 ## 🙌 Acknowledgment
 
 This implementation includes reusable modules under `model/` (e.g., DGFont, differentiable JPEG, PCGrad) integrated into the FontGuard training pipeline.
-

@@ -188,7 +188,23 @@ def get_logger(cfg):
                         ])
     logging.info('Tensorboard is enabled. Creating logger.')
     tb_logger = Logger(os.path.join(cfg.exp_dir, 'tb-logs'))
-    return tb_logger
+    return TensorboardLoggerAdapter(tb_logger)
+
+
+class TensorboardLoggerAdapter:
+    def __init__(self, logger):
+        self.logger = logger
+
+    def save_losses(self, losses, epoch):
+        for name, meter in losses.items():
+            value = meter.avg if hasattr(meter, 'avg') else meter
+            self.logger.log_value(name, float(value), int(epoch))
+
+    def save_grads(self, epoch):
+        return None
+
+    def save_tensors(self, epoch):
+        return None
 
 
 def print_model(model, cfg):
@@ -297,7 +313,11 @@ transform = transforms.ToTensor()
 
 def get_msg_img(msg):
     msg_img = []
-    for each_gt in msg.detach().cpu().numpy():
+    if torch.is_tensor(msg):
+        msg_values = msg.detach().cpu().numpy()
+    else:
+        msg_values = np.asarray(msg)
+    for each_gt in msg_values:
         img = np.zeros((80, 80, 3), dtype=np.uint8)
         img = cv2.putText(img, str(each_gt), (40, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA, False)
         img = transform(img)
@@ -546,7 +566,7 @@ def create_output_dir(output_dir, exp_name):
     return run_dir
 
 
-def write_losses(file_name, losses_accu, epoch, duration):
+def write_losses(file_name, losses_accu, epoch, duration=0):
     with open(file_name, 'a', newline='') as csvfile:
         writer = csv.writer(csvfile)
         if epoch == 1:

@@ -14,14 +14,15 @@ from model.noise_layers.perspective_warp import PerspectiveWarp
 
 # path
 exp_name = "SimSun"
-fontguard_ckpt = "/data/jesonwong47/FontCode/FontGuard/SimSun/exp_output/SimSun_m1_final/checkpoints/SimSun_m1_final--epoch-150--acc-0.pyt"
-root = "/data/jesonwong47/FontCode/FontGuard/exp_data"
-
-font_dir = op.join(root, "ori_png")  # the directory of font images for training
+fontguard_ckpt = None
+root = "/data/jesonwong47/FontCode/script/FontGuard/exp_data"
+exp_root = "/data/jesonwong47/FontCode/script/FontGuard/exp_out"
+font_dir = op.join(root, 'SimSun')  # the directory of font images for training
 base_sty_path = op.join(root, "base_sty_feat_CH.pth")  # the path of the extracted style features of font images
 pretrain_dec_ckpt = op.join(root, "clip_cls_CH.pt")  # the checkpoint of the pre-trained decoder, we pretrain the clip image encoder with the font classification task to provide a better initialization for the decoder. 
+font_model_ckpt = op.join(root, "font_model_CH.ckpt")  # the checkpoint of the pre-trained font recognition model, we use it to extract the style features of font images. You can also use any other font recognition model to extract style features.
 bg_dir = op.join(root, "val2017")  # the directory of background images of font for background augmentation, you can use any natural images as background images. We use the COCO 2017 val images in our experiments.
-exp_dir = op.join(root, f'{exp_name} {time.strftime("%Y.%m.%d--%H-%M-%S")}')
+exp_dir = op.join(exp_root, f'{exp_name} {time.strftime("%Y.%m.%d--%H-%M-%S")}')
 
 os.makedirs(root, exist_ok=True)
 os.makedirs(exp_dir, exist_ok=True)
@@ -51,10 +52,12 @@ alpha = 0.99
 weight_decay = 1e-4
 
 # dataloader
-bs = 64
-workers = 1
+bs = 16  # 64
+workers = 0
 msg_bit = 1
 msg_n = int(2**msg_bit)
+msg_len = msg_bit
+num_cls = msg_n
 bs = bs // msg_n  # real batch size
 step_per_epoch = -1  # uni: 1000; single font: -1
 epochs = 150
@@ -79,8 +82,12 @@ db_thresh = 0.3  # ch: 0.3  larger thresh, more text pixels
 font_img_size = 80
 clip_img_size = 224
 clip_img_f_dim = 1024
-num_sty_feat = 240 + 1  # ch single font: 240 + 1; eng single font: 104 + 1
+num_sty_feat = 240
 sty_feat_dim = 128
-print_freq = 100
+print_freq = 1
 save_cp_freq = 50
 start_save_cp_epoch = 10
+
+# model defaults required by discriminator/encoder modules
+discriminator_channels = 64
+discriminator_blocks = 3

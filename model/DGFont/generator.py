@@ -90,9 +90,9 @@ class Decoder(nn.Module):
             self.model = nn.Sequential(*self.model)
 
             self.dcn = DCN(64, 64, kernel_size=(3, 3), stride=1, padding=1,
-                           groups=1, deform_groups=1, double=True).cuda()
+                           groups=1, deform_groups=1, double=True)
             self.dcn_2 = DCN(128, 128, kernel_size=(3, 3), stride=1, padding=1,
-                             groups=1, deform_groups=1, double=True).cuda()
+                             groups=1, deform_groups=1, double=True)
         elif baseline_idx == 4:  # old
             self.model.append(ResBlocks(n_res, nf, res_norm, act, pad, use_sn=use_sn))
 
@@ -116,9 +116,9 @@ class Decoder(nn.Module):
             self.model = nn.Sequential(*self.model)
             ########这里的维度要自己设定
             self.dcn_3 = DCN(128, 128, kernel_size=(3, 3), stride=1, padding=1,
-                             groups=1, deform_groups=1, double=True).cuda()
+                             groups=1, deform_groups=1, double=True)
             self.dcn_2 = DCN(64, 64, kernel_size=(3, 3), stride=1, padding=1,
-                             groups=1, deform_groups=1, double=True).cuda()
+                             groups=1, deform_groups=1, double=True)
         else:
             self.model.append(ResBlocks(n_res, nf, res_norm, act, pad, use_sn=use_sn))  # 0 scale x1 channel x1 [256]
             if baseline_idx == 2:
@@ -141,9 +141,9 @@ class Decoder(nn.Module):
             self.model = nn.Sequential(*self.model)
 
             self.dcn = DCN(128, 128, kernel_size=(3, 3), stride=1, padding=1,
-                           groups=1, deform_groups=1, double=True).cuda()
+                           groups=1, deform_groups=1, double=True)
             self.dcn_2 = DCN(256, 256, kernel_size=(3, 3), stride=1, padding=1,
-                             groups=1, deform_groups=1, double=True).cuda()
+                             groups=1, deform_groups=1, double=True)
 
     def forward(self, x, skip1, skip2):
         if self.baseline_idx == 4:
@@ -204,17 +204,17 @@ class ContentEncoder(nn.Module):
             self.model.append(ResBlocks(n_res, 256, norm=norm, act=act, pad_type=pad, use_sn=use_sn))
             self.model = nn.Sequential(*self.model)
             self.dcn1 = DCN(3, nf, kernel_size=(3, 3), stride=1, padding=1,
-                            groups=1, deform_groups=1).cuda()
+                            groups=1, deform_groups=1)
         else:
             self.model = nn.ModuleList()
             self.model.append(ResBlocks(n_res, 256, norm=norm, act=act, pad_type=pad, use_sn=use_sn))
             self.model = nn.Sequential(*self.model)
             self.dcn1 = DCN(3, nf, kernel_size=(7, 7), stride=1, padding=3,
-                            groups=1, deform_groups=1).cuda()
+                            groups=1, deform_groups=1)
         self.dcn2 = DCN(nf, nf * 2, kernel_size=(4, 4), stride=2, padding=1,
-                        groups=1, deform_groups=1).cuda()
+                        groups=1, deform_groups=1)
         self.dcn3 = DCN(nf * 2, nf * 4, kernel_size=(4, 4), stride=2,
-                        padding=1, groups=1, deform_groups=1).cuda()
+                        padding=1, groups=1, deform_groups=1)
         self.IN1 = nn.InstanceNorm2d(nf)
         self.IN2 = nn.InstanceNorm2d(nf * 2)
         self.IN3 = nn.InstanceNorm2d(nf * 4)

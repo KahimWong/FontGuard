@@ -1,7 +1,8 @@
 import cfg
 import os
+import pprint
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
 
 import torch
 torch.set_num_threads(1)
@@ -30,7 +31,7 @@ from model.discriminator import Discriminator
 from model.clip import LASTED
 from model.PCGrad.pcgrad import PCGrad_RMSprop
 
-from utils import get_logger, get_msg_img, get_rand_interop_type, get_clip_pred, log_progress, write_losses, save_checkpoint, convert_msg, convert_img
+from utils import AverageMeter, get_logger, get_msg_img, get_rand_interop_type, get_clip_pred, log_progress, write_losses, save_checkpoint, convert_msg, convert_img
 import os
 import os.path as op
 import logging
@@ -39,12 +40,13 @@ import torchvision
 from model.vgg import VGG
 from ds import get_dl
 
-device = 'cuda'
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class FontGuard:
     def __init__(self):
         super(FontGuard, self).__init__()
         self.wm_bit = cfg.msg_n
+        self.b = cfg.bs
         self.clip_img_size = (cfg.clip_img_size, cfg.clip_img_size)
         self.real_label = .9
         self.fake_label = .1
@@ -53,7 +55,6 @@ class FontGuard:
         self.gen_fake_gt = torch.full((self.b, 1), self.real_label, device=device, dtype=torch.float32)
         self.save_img_dir = op.join(cfg.exp_dir, 'vis_img')
         self.logger = get_logger(cfg)
-        self.b = cfg.bs
 
         # load mean style feature
         base_sty_feat = torch.load(cfg.base_sty_path).to(device)
@@ -78,18 +79,18 @@ class FontGuard:
 
         # load decoder
         if cfg.pretrain_dec_ckpt is not None:
-            pretrain_dec = torch.load(cfg.pretrain_dec_ckpt)
+            pretrain_dec = torch.load(cfg.pretrain_dec_ckpt, map_location='cpu')
             pretrain_dec = OrderedDict([(k.replace('module.', ''), v) for k, v in pretrain_dec.items()])
             del pretrain_dec['fc.weight']
             del pretrain_dec['fc.bias']
             self.decoder.load_state_dict(pretrain_dec, strict=False)
 
-        self.load_ckpt()
-        
         # define optimizer
         self.optim_enc = PCGrad_RMSprop(self.encoder.parameters(), lr=cfg.enc_lr, alpha=cfg.alpha, weight_decay=cfg.weight_decay)
         self.optim_dec = RMSprop(self.decoder.parameters(), lr=cfg.dec_lr, alpha=cfg.alpha, weight_decay=cfg.weight_decay)
         self.optim_disc = RMSprop(self.discriminator.parameters(), lr=cfg.disc_lr, alpha=cfg.alpha, weight_decay=cfg.weight_decay)
+
+        self.load_ckpt()
 
         # define loss
         self.vgg = VGG(3, 1, False).to(device)
@@ -180,7 +181,7 @@ class FontGuard:
         }
         
         if is_save_img:
-            self.save_img(
+            self._save_img_preview(
                 (
                     ori_img, 
                     enc_img.detach(), 
@@ -269,14 +270,16 @@ class FontGuard:
 
         return ori_font_bin, enc_font_bin, enc_img_bg
     
-    def save_img(self, img, msg, epoch, save_n=8, size=(80,80)):
+    def _save_img_preview(self, img, msg, epoch, save_n=8, size=(80,80)):
         
         (ori_img, enc_img, enc_img_bg, noise_img) = img
         
-        # convert binary msg to int
-        msg = msg[:save_n, :]
-        msg = msg.cpu().numpy().astype(bool)
-        msg = np.packbits(msg, axis=1, bitorder='little').reshape(-1)
+        if msg.ndim == 1:
+            msg = msg[:save_n]
+        else:
+            msg = msg[:save_n, :]
+            msg = msg.cpu().numpy().astype(bool)
+            msg = np.packbits(msg, axis=1, bitorder='little').reshape(-1)
 
         msg_img = get_msg_img(msg)
 
@@ -324,6 +327,8 @@ class FontGuard:
             msg_bin = torch.Tensor(msg_bin).to(device)  # [num_cls, log2(num_cls)]
             msg_idx = msg_idx.repeat(self.b)  # [b*num_cls,]
             msg_bin = msg_bin.repeat(self.b, 1)  # [b*num_cls, log2(num_cls)]
+        else:
+            raise ValueError(f"Unsupported mode: {mode}")
         return msg_idx, msg_bin
 
     def save_img(self, font_img, output_imgs, msg, idx_to_save, epoch, step, folder, resize_to=None):
@@ -333,7 +338,7 @@ class FontGuard:
         if len(msg.shape) != 1:
             gts = convert_msg(idx_to_save, msg)
 
-        gt_img = gen_gt_img(gts[:idx_to_save])
+        gt_img = get_msg_img(gts[:idx_to_save])
 
         img_set_list = [font_img, enc_img, enc_img_w_bg, noise_img]
         img_set_list = [convert_img(each_set, idx_to_save) for each_set in img_set_list]
@@ -350,23 +355,28 @@ class FontGuard:
         torchvision.utils.save_image(stacked_images, filename)
 
     def to_str(self):
-        return '{}\n{}'.format(str(self.encoder),
-                               str(self.decoder),
-                               str(self.discriminator))
+        return '{}\n{}\n{}'.format(
+            str(self.encoder),
+            str(self.decoder),
+            str(self.discriminator),
+        )
 
     def load_ckpt(self):
         if cfg.fontguard_ckpt is not None:
-            ckpt = torch.load(cfg.fontguard_ckpt)
-            self.encoder.load_state_dict(ckpt['encoder'])
-            self.decoder.load_state_dict(ckpt['decoder'], strict=False)
-            self.discriminator.load_state_dict(ckpt['discriminator'])
-            self.optim_enc.load_state_dict(ckpt['optim_enc'])
-            self.optim_dec.load_state_dict(ckpt['optim_dec'])
-            self.optim_disc.load_state_dict(ckpt['optim_disc'])
+            ckpt = torch.load(cfg.fontguard_ckpt, map_location='cpu')
+            try:
+                self.encoder.load_state_dict(ckpt['encoder'])
+                self.decoder.load_state_dict(ckpt['decoder'], strict=False)
+                self.discriminator.load_state_dict(ckpt['discriminator'])
+                self.optim_enc.load_state_dict(ckpt['optim_enc'])
+                self.optim_dec.load_state_dict(ckpt['optim_dec'])
+                self.optim_disc.load_state_dict(ckpt['optim_disc'])
+            except RuntimeError as err:
+                logging.warning(f"Skip incompatible checkpoint load: {err}")
 
     def train(self):
         logger = self.logger
-        device = device
+        run_device = device
         step_per_epoch = len(self.train_dl) if cfg.step_per_epoch == -1 else cfg.step_per_epoch
         epochs = cfg.epochs
         exp_dir = cfg.exp_dir
@@ -376,10 +386,11 @@ class FontGuard:
         test_acc_best = -1
 
         for epoch in range(1, epochs + 1):
+            epoch_start = time.time()
             step, is_save_img = 1, True
 
             for font_img, bg_img, _ in self.train_dl:
-                font_img, bg_img = font_img.to(device), bg_img.to(device)
+                font_img, bg_img = font_img.to(run_device), bg_img.to(run_device)
                 bg_img = self.get_rnd_bg(bg_img, epoch)
                 msg_idx, msg_bin = self.get_rnd_msg("train")
 
@@ -402,12 +413,13 @@ class FontGuard:
                     break
 
             write_losses(
-                op.join(exp_dir, "train.csv"), loss_record, epoch
+                op.join(exp_dir, "train.csv"),
+                loss_record,
+                epoch,
+                time.time() - epoch_start,
             )
 
             logger.save_losses(loss_record, epoch)
-            logger.save_grads(epoch)
-            logger.save_tensors(epoch)
 
             avg_acc = loss_record["dec_noise_acc"].avg
             if epoch % cfg.save_cp_freq == 0:

@@ -94,6 +94,8 @@ Desktop.ini
 *.safetensors
 
 # Training outputs
+/exp_data/
+/exp_out/
 exp_output/
 logs/
 runs/
