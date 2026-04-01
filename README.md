@@ -2,7 +2,7 @@
 
 [![arXiv](https://img.shields.io/badge/arXiv-2504.03128-b31b1b.svg)](https://arxiv.org/abs/2504.03128)
 [![Venue](https://img.shields.io/badge/IEEE-TMM%202025-0a66c2.svg)](https://ieeexplore.ieee.org/document/11146602)
-[![License](https://img.shields.io/github/license/KahimWong/ADCD-Net)](LICENSE)
+[![License](https://img.shields.io/github/license/KahimWong/FontGuard)](LICENSE)
 
 > **FontGuard** is a robust font watermarking framework that embeds bits by manipulating font style representations (instead of only pixel-space perturbations), then decodes them with contrastive learning for stronger distortion robustness.
 
