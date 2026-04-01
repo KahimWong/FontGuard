@@ -52,7 +52,7 @@ alpha = 0.99
 weight_decay = 1e-4
 
 # dataloader
-bs = 16  # 64
+bs = 64
 workers = 0
 msg_bit = 1
 msg_n = int(2**msg_bit)
