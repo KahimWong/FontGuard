@@ -1,7 +1,8 @@
 # FontGuard
 
 [![arXiv](https://img.shields.io/badge/arXiv-2504.03128-b31b1b.svg)](https://arxiv.org/abs/2504.03128)
-[![Venue](https://img.shields.io/badge/IEEE-TMM%202025-0a66c2.svg)](https://arxiv.org/abs/2504.03128)
+[![Venue](https://img.shields.io/badge/IEEE-TMM%202025-0a66c2.svg)](https://ieeexplore.ieee.org/document/11146602)
+[![License](https://img.shields.io/github/license/KahimWong/ADCD-Net)](LICENSE)
 
 > **FontGuard** is a robust font watermarking framework that embeds bits by manipulating font style representations (instead of only pixel-space perturbations), then decodes them with contrastive learning for stronger distortion robustness.
 
@@ -44,10 +45,8 @@ FontGuard/
 Install dependencies in your Python environment:
 
 ```bash
-pip install torch torchvision numpy pillow tqdm
+pip install torch==1.13.0+cu117 torchvision==0.14.0+cu117
 ```
-
-> If your setup differs (CUDA / PyTorch version constraints), install the matching PyTorch build first, then install the remaining packages.
 
 ### 2) Prepare data and pretrained files
 
@@ -59,7 +58,7 @@ Set the `root` directory in `cfg.py`, then place required files under that root:
 - background images (`bg_dir`, default: `root/val2017`)
 
 Pretrained resources:
-- [Google Drive](https://drive.google.com/drive/folders/1n9l8sXo2mLh7a3e5j6v0Zt9sXq8z9b?usp=sharing)
+- [Google Drive](https://drive.google.com/file/d/1QtjmwWe7bi1SY_Q88ZPdP5Q6MsLba7Lr/view?usp=sharing)
 
 Recommended `exp_data` layout (matching `cfg.py` defaults):
 
@@ -70,20 +69,13 @@ exp_data/
 │       ├── 0000.png
 │       └── ...
 ├── val2017/                     # background images (e.g., COCO val2017)
-├── base_sty_feat_CH.pth         # extracted mean style feature
-├── clip_cls_CH.pt               # pretrained decoder checkpoint
-├── font_model_CH.ckpt           # pretrained font recognition model
-└── SimSun YYYY.MM.DD--HH-MM-SS/ # auto-created per run (`exp_dir`)
-    ├── SimSun.log
-    ├── train.csv
-    ├── eval.csv
-    ├── tb-logs/
-    ├── vis_img/
-    ├── ckpt/
-    └── checkpoints/
+├── base_sty_feat_CH.pth         # extracted mean style feature (chinese font)
+├── clip_cls_CH.pt               # pretrained decoder checkpoint (chinese font)
+├── font_model_CH.ckpt           # pretrained font recognition model (chinese font)
+├── base_sty_feat_ENG.pth         # extracted mean style feature (english font)
+├── clip_cls_ENG.pt               # pretrained decoder checkpoint (english font)
+└── font_model_ENG.ckpt           # pretrained font recognition model (english font)
 ```
-
-> Note: the timestamped run directory is created automatically at startup.
 
 ### 3) Organize font images correctly
 
