@@ -4,7 +4,7 @@
 [![Venue](https://img.shields.io/badge/IEEE-TMM%202025-0a66c2.svg)](https://ieeexplore.ieee.org/document/11146602)
 [![License](https://img.shields.io/github/license/KahimWong/FontGuard)](LICENSE)
 
-> **FontGuard** is a robust font watermarking framework that embeds bits by manipulating font style representations (instead of only pixel-space perturbations), then decodes them with contrastive learning for stronger distortion robustness.
+> **FontGuard** is a robust font watermarking framework that embeds bits by manipulating font style representations (instead of only pixel-space perturbations), then decodes them with contrastive learning.
 
 ![Model Overview](./fig/model_overview.png)
 
@@ -115,7 +115,14 @@ Training outputs are written to `exp_dir` (auto-created in `cfg.py`), including 
 
 ## 🧪 Demo Evaluation
 
-The demo folder includes evaluation code for released 1-bit watermarked SimSun assets across multiple scenarios.
+The demo folder includes evaluation code for released 1-bit watermarked SimSun assets across seven transmission scenarios.
+
+- **Cross-media**: screenshots, screen-camera capture, and print-camera capture
+- **Online social networks (OSNs)**: Facebook, WhatsApp, Weibo, and WeChat
+
+For data collection, screen-camera capture used an **iMac17,1** as the display device, and print-camera capture used an **ApeosPrint C5570 TC** printer with the default **600 dpi** scanning resolution. All image captures were taken with a **HUAWEI P60** using default camera settings.
+
+For OSN transmission, Facebook and WhatsApp upload/download were performed on an **Alienware Aurora R9** running **Windows 11 version 22621**, while Weibo and WeChat transmission used a **HUAWEI P60** running **HarmonyOS 4.0.0**.
 
 1. Download demo package (see `demo/README.md`).
 2. Configure paths in `demo/demo_cfg.py`.
